@@ -1,0 +1,750 @@
+{
+  "entities": {
+    "AdminUser": {
+      "title": "AdminUser",
+      "description": "Authorized Bestari Graduation studio administrator account.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "minLength": 5,
+          "maxLength": 160
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin"]
+        },
+        "server_created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "server_updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "email", "name", "role", "server_created_at", "server_updated_at"]
+    },
+    "ClientBooking": {
+      "title": "ClientBooking",
+      "description": "Confirmed graduation photography booking record and workflow status.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "order_id": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 64
+        },
+        "client_id_display": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16
+        },
+        "booking_year": {
+          "type": "integer"
+        },
+        "booking_sequence": {
+          "type": "integer"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "confirmed",
+            "photo_session",
+            "file_uploaded",
+            "selection_pending",
+            "selection_submitted",
+            "editing",
+            "final_access",
+            "completed",
+            "cancelled"
+          ]
+        },
+        "region_id": {
+          "type": "string",
+          "enum": ["malang", "surabaya"]
+        },
+        "client_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "campus": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "phone": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 40
+        },
+        "package_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "package_price": {
+          "type": "number"
+        },
+        "total_price": {
+          "type": "number"
+        },
+        "paid_amount": {
+          "type": "number"
+        },
+        "payment_status": {
+          "type": "string",
+          "enum": ["UNPAID", "DP", "LUNAS"]
+        },
+        "photographer": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "server_updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "order_id",
+        "client_id_display",
+        "booking_year",
+        "status",
+        "region_id",
+        "client_name",
+        "campus",
+        "package_name",
+        "package_price",
+        "payment_status",
+        "paid_amount",
+        "server_updated_at"
+      ]
+    },
+    "BookingRequest": {
+      "title": "BookingRequest",
+      "description": "Public or admin-entered graduation photography booking inquiry awaiting DP verification.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "client_name": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "phone": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 32
+        },
+        "instagram": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "campus": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "region": {
+          "type": "string",
+          "enum": ["malang", "surabaya"]
+        },
+        "package_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "package_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "package_price": {
+          "type": "number"
+        },
+        "total_price": {
+          "type": "number"
+        },
+        "selected_addons": {
+          "type": "array"
+        },
+        "photo_date": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "session_time": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "photo_location": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "status": {
+          "type": "string",
+          "enum": ["new", "contacted", "dp_pending", "expired", "confirmed", "rejected"]
+        },
+        "created_at": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "expires_at": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "dp_verified": {
+          "type": "boolean"
+        },
+        "warning_duplicate": {
+          "type": "boolean"
+        },
+        "server_created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "client_name",
+        "phone",
+        "campus",
+        "region",
+        "package_id",
+        "package_name",
+        "package_price",
+        "status",
+        "created_at",
+        "expires_at",
+        "dp_verified",
+        "server_created_at"
+      ]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Financial payment transaction ledger (DP, Pelunasan, Add-On).",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "date": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 32
+        },
+        "client_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "client_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "order_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "type": {
+          "type": "string",
+          "enum": ["DP", "Pelunasan", "Add-On", "Refund"]
+        },
+        "amount": {
+          "type": "number"
+        },
+        "payment_method": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "status": {
+          "type": "string",
+          "enum": ["verified", "pending", "rejected"]
+        },
+        "server_updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "date", "client_id", "client_name", "order_id", "type", "amount", "status", "server_updated_at"]
+    },
+    "PackagePlan": {
+      "title": "PackagePlan",
+      "description": "Graduation photography package catalog entry.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "region": {
+          "type": "string",
+          "enum": ["malang", "surabaya"]
+        },
+        "price": {
+          "type": "number"
+        },
+        "edit_quota": {
+          "type": "integer"
+        },
+        "is_active": {
+          "type": "boolean"
+        },
+        "server_updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "name", "region", "price", "edit_quota", "is_active", "server_updated_at"]
+    },
+    "AddOnItem": {
+      "title": "AddOnItem",
+      "description": "Graduation photography add-on catalog entry.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "price": {
+          "type": "number"
+        },
+        "edit_quota_addition": {
+          "type": "integer"
+        },
+        "server_updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "name", "price", "server_updated_at"]
+    },
+    "StudioSettings": {
+      "title": "StudioSettings",
+      "description": "Studio-wide configuration (active year, photographer roster, templates, Drive URLs).",
+      "type": "object",
+      "properties": {
+        "selectedYear": {
+          "type": "integer"
+        },
+        "photographers": {
+          "type": "array"
+        },
+        "messageTemplates": {
+          "type": "object"
+        },
+        "driveConfig": {
+          "type": "object"
+        },
+        "server_updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["selectedYear", "photographers", "messageTemplates", "driveConfig", "server_updated_at"]
+    },
+    "ActivityLogItem": {
+      "title": "ActivityLogItem",
+      "description": "Operational audit trail log entry.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "timestamp": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "actor": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "action": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "details": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "server_created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "timestamp", "actor", "action", "details", "server_created_at"]
+    },
+    "SystemNotification": {
+      "title": "SystemNotification",
+      "description": "Admin operational alert notification.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "type": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 180
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 600
+        },
+        "timestamp": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "read": {
+          "type": "boolean"
+        },
+        "server_created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "type", "title", "message", "timestamp", "read", "server_created_at"]
+    },
+    "PortalCard": {
+      "title": "PortalCard",
+      "description": "Capability-hashed non-sensitive Client Portal projection keyed by SHA-256(clientId:pin).",
+      "type": "object",
+      "properties": {
+        "client_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "order_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "client_id_display": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16
+        },
+        "client_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "status": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "server_updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["client_id", "order_id", "client_id_display", "client_name", "status", "server_updated_at"]
+    },
+    "PortalSubmission": {
+      "title": "PortalSubmission",
+      "description": "Client Portal self-service action submitted against a verified capability hash.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "card_hash": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 64,
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "client_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "start_selection",
+            "submit_selection",
+            "complete_final",
+            "submit_feedback",
+            "skip_feedback"
+          ]
+        },
+        "selected_ids": {
+          "type": "array"
+        },
+        "rating": {
+          "type": "integer"
+        },
+        "comment": {
+          "type": "string",
+          "maxLength": 600
+        },
+        "created_at": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "server_created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "card_hash", "client_id", "action", "created_at", "server_created_at"]
+    },
+    "FgBoard": {
+      "title": "FgBoard",
+      "description": "Capability-hashed Photographer Field Portal board header keyed by SHA-256(fgPin).",
+      "type": "object",
+      "properties": {
+        "selectedYear": {
+          "type": "integer"
+        },
+        "photographers": {
+          "type": "array"
+        },
+        "server_updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["selectedYear", "photographers", "server_updated_at"]
+    },
+    "FgSessionCard": {
+      "title": "FgSessionCard",
+      "description": "Non-financial photographer field session item stored under fg_boards/{boardHash}/sessions.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "order_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "client_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "booking_year": {
+          "type": "integer"
+        },
+        "region_id": {
+          "type": "string",
+          "enum": ["malang", "surabaya"]
+        },
+        "campus": {
+          "type": "string",
+          "maxLength": 140
+        },
+        "photo_location": {
+          "type": "string",
+          "maxLength": 180
+        },
+        "photo_date": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "session_time": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "package_name": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "edit_quota": {
+          "type": "integer"
+        },
+        "photographer": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "status": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "server_updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "order_id",
+        "client_name",
+        "booking_year",
+        "region_id",
+        "campus",
+        "status",
+        "server_updated_at"
+      ]
+    },
+    "FgFieldUpdate": {
+      "title": "FgFieldUpdate",
+      "description": "Field milestone report submitted by a photographer via FgFieldPortal.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "board_hash": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 64,
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "client_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "action": {
+          "type": "string",
+          "enum": ["mark_photo_session", "mark_jpg_uploaded"]
+        },
+        "fg_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "created_at": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "server_created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "board_hash", "client_id", "action", "fg_name", "created_at", "server_created_at"]
+    }
+  },
+  "firestore": {
+    "/admins/{uid}": {
+      "schema": { "$ref": "#/entities/AdminUser" },
+      "description": "Admin role documents"
+    },
+    "/clients/{clientId}": {
+      "schema": { "$ref": "#/entities/ClientBooking" },
+      "description": "Confirmed client bookings (Admin-only PII and financial fields)"
+    },
+    "/booking_requests/{requestId}": {
+      "schema": { "$ref": "#/entities/BookingRequest" },
+      "description": "Incoming booking requests (Admin read/manage, public write-only validated create)"
+    },
+    "/transactions/{transactionId}": {
+      "schema": { "$ref": "#/entities/Transaction" },
+      "description": "Financial transaction ledger (Admin-only)"
+    },
+    "/packages/{packageId}": {
+      "schema": { "$ref": "#/entities/PackagePlan" },
+      "description": "Studio service package catalog"
+    },
+    "/addons/{addonId}": {
+      "schema": { "$ref": "#/entities/AddOnItem" },
+      "description": "Studio add-on catalog"
+    },
+    "/settings/{settingId}": {
+      "schema": { "$ref": "#/entities/StudioSettings" },
+      "description": "Studio configuration document (Admin-only)"
+    },
+    "/activity_logs/{logId}": {
+      "schema": { "$ref": "#/entities/ActivityLogItem" },
+      "description": "Audit trail events (Admin-only)"
+    },
+    "/notifications/{notifId}": {
+      "schema": { "$ref": "#/entities/SystemNotification" },
+      "description": "Admin operational notifications (Admin-only)"
+    },
+    "/portal_cards/{cardHash}": {
+      "schema": { "$ref": "#/entities/PortalCard" },
+      "description": "Capability-hashed Client Portal view (non-enumerable, no phone/PIN)"
+    },
+    "/portal_submissions/{submissionId}": {
+      "schema": { "$ref": "#/entities/PortalSubmission" },
+      "description": "Client Portal self-service photo selection and feedback queue"
+    },
+    "/fg_boards/{boardHash}": {
+      "schema": { "$ref": "#/entities/FgBoard" },
+      "description": "Capability-hashed Photographer Field Portal board header"
+    },
+    "/fg_boards/{boardHash}/sessions/{sessionId}": {
+      "schema": { "$ref": "#/entities/FgSessionCard" },
+      "description": "Non-financial field session items for Photographer Portal"
+    },
+    "/fg_updates/{updateId}": {
+      "schema": { "$ref": "#/entities/FgFieldUpdate" },
+      "description": "Photographer field milestone updates awaiting Admin state merge"
+    }
+  }
+}

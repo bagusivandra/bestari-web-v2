@@ -1,0 +1,386 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net (Default Deny Catch-All)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Global Security & Validation Primitives
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidSha256HexId(id) {
+      return id is string && id.size() == 64 && id.matches('^[a-f0-9]{64}$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && request.auth.token.email_verified == true
+        && (
+          request.auth.token.email == 'bestarigraduation@gmail.com'
+          || exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        );
+    }
+
+    // 3. Entity Validation Blueprints
+    function isValidAdminUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'name', 'role', 'server_created_at', 'server_updated_at'])
+        && data.keys().hasOnly(['uid', 'email', 'name', 'role', 'server_created_at', 'server_updated_at'])
+        && isValidId(data.uid)
+        && data.uid == request.auth.uid
+        && data.email is string && data.email.size() >= 5 && data.email.size() <= 160
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 120
+        && data.role == 'admin'
+        && data.server_created_at is timestamp
+        && data.server_updated_at == request.time;
+    }
+
+    function isValidClientBooking(data) {
+      return data.keys().hasAll([
+          'id', 'order_id', 'client_id_display', 'booking_year',
+          'status', 'region_id', 'client_name', 'campus',
+          'package_name', 'package_price', 'payment_status', 'paid_amount',
+          'server_updated_at'
+        ])
+        && isValidId(data.id)
+        && data.order_id is string && data.order_id.size() >= 3 && data.order_id.size() <= 64
+        && data.client_id_display is string && data.client_id_display.size() >= 1 && data.client_id_display.size() <= 16
+        && data.booking_year is int && data.booking_year >= 2020 && data.booking_year <= 2100
+        && data.status in [
+          'confirmed', 'photo_session', 'file_uploaded',
+          'selection_pending', 'selection_submitted', 'editing',
+          'final_access', 'completed', 'cancelled'
+        ]
+        && data.region_id in ['malang', 'surabaya']
+        && data.client_name is string && data.client_name.size() >= 1 && data.client_name.size() <= 140
+        && data.campus is string && data.campus.size() >= 1 && data.campus.size() <= 140
+        && data.package_name is string && data.package_name.size() >= 1 && data.package_name.size() <= 120
+        && data.package_price is number && data.package_price >= 0
+        && data.payment_status in ['UNPAID', 'DP', 'LUNAS']
+        && data.paid_amount is number && data.paid_amount >= 0
+        && (!('phone' in data) || (data.phone is string && data.phone.size() <= 40))
+        && (!('photographer' in data) || (data.photographer is string && data.photographer.size() <= 120))
+        && (!('selected_addons' in data) || (data.selected_addons is list && data.selected_addons.size() <= 30 && (data.selected_addons.size() == 0 || data.selected_addons[0] is string)))
+        && (!('selected_photo_ids' in data) || (data.selected_photo_ids is list && data.selected_photo_ids.size() <= 200 && (data.selected_photo_ids.size() == 0 || data.selected_photo_ids[0] is string)))
+        && data.server_updated_at == request.time;
+    }
+
+    function isValidPublicBookingRequestCreate(data) {
+      return data.keys().hasAll([
+          'id', 'client_name', 'phone', 'campus', 'region',
+          'package_id', 'package_name', 'package_price', 'total_price',
+          'selected_addons', 'status', 'created_at', 'expires_at',
+          'dp_verified', 'warning_duplicate', 'server_created_at'
+        ])
+        && data.keys().hasOnly([
+          'id', 'client_name', 'phone', 'instagram', 'campus', 'region',
+          'package_id', 'package_name', 'package_price', 'total_price',
+          'selected_addons', 'photo_date', 'session_time', 'photo_location',
+          'notes', 'status', 'created_at', 'expires_at',
+          'dp_verified', 'warning_duplicate', 'server_created_at'
+        ])
+        && isValidId(data.id)
+        && data.client_name is string && data.client_name.size() >= 2 && data.client_name.size() <= 120
+        && data.phone is string && data.phone.size() >= 8 && data.phone.size() <= 32
+        && (!('instagram' in data) || (data.instagram is string && data.instagram.size() <= 80))
+        && data.campus is string && data.campus.size() >= 2 && data.campus.size() <= 120
+        && data.region in ['malang', 'surabaya']
+        && data.package_id is string && data.package_id.size() >= 1 && data.package_id.size() <= 64
+        && data.package_name is string && data.package_name.size() >= 1 && data.package_name.size() <= 120
+        && data.package_price is number && data.package_price >= 0
+        && data.total_price is number && data.total_price >= data.package_price
+        && data.selected_addons is list && data.selected_addons.size() <= 20 && (data.selected_addons.size() == 0 || data.selected_addons[0] is string)
+        && (!('photo_date' in data) || (data.photo_date is string && data.photo_date.size() <= 32))
+        && (!('session_time' in data) || (data.session_time is string && data.session_time.size() <= 64))
+        && (!('photo_location' in data) || (data.photo_location is string && data.photo_location.size() <= 160))
+        && (!('notes' in data) || (data.notes is string && data.notes.size() <= 500))
+        && data.status == 'new'
+        && data.dp_verified == false
+        && data.warning_duplicate is bool
+        && data.created_at is string && data.created_at.size() >= 10 && data.created_at.size() <= 64
+        && data.expires_at is string && data.expires_at.size() >= 10 && data.expires_at.size() <= 64
+        && data.server_created_at == request.time;
+    }
+
+    function isValidAdminBookingRequest(data) {
+      return data.keys().hasAll([
+          'id', 'client_name', 'phone', 'campus', 'region',
+          'package_id', 'package_name', 'package_price', 'status',
+          'created_at', 'expires_at', 'dp_verified', 'server_created_at'
+        ])
+        && isValidId(data.id)
+        && data.client_name is string && data.client_name.size() >= 1 && data.client_name.size() <= 120
+        && data.phone is string && data.phone.size() <= 40
+        && data.campus is string && data.campus.size() >= 1 && data.campus.size() <= 140
+        && data.region in ['malang', 'surabaya']
+        && data.package_id is string && data.package_id.size() >= 1 && data.package_id.size() <= 64
+        && data.package_name is string && data.package_name.size() >= 1 && data.package_name.size() <= 120
+        && data.package_price is number && data.package_price >= 0
+        && data.status in ['new', 'contacted', 'dp_pending', 'expired', 'confirmed', 'rejected']
+        && data.dp_verified is bool
+        && data.created_at is string && data.created_at.size() <= 64
+        && data.expires_at is string && data.expires_at.size() <= 64
+        && data.server_created_at is timestamp;
+    }
+
+    function isValidTransaction(data) {
+      return data.keys().hasAll([
+          'id', 'date', 'client_id', 'client_name', 'order_id',
+          'type', 'amount', 'status', 'server_updated_at'
+        ])
+        && isValidId(data.id)
+        && data.date is string && data.date.size() >= 4 && data.date.size() <= 32
+        && data.client_id is string && data.client_id.size() >= 1 && data.client_id.size() <= 128
+        && data.client_name is string && data.client_name.size() >= 1 && data.client_name.size() <= 140
+        && data.order_id is string && data.order_id.size() >= 1 && data.order_id.size() <= 64
+        && data.type in ['DP', 'Pelunasan', 'Add-On', 'Refund']
+        && data.amount is number && data.amount >= 0
+        && data.status in ['verified', 'pending', 'rejected']
+        && (!('payment_method' in data) || (data.payment_method is string && data.payment_method.size() <= 100))
+        && data.server_updated_at == request.time;
+    }
+
+    function isValidPackagePlan(data) {
+      return data.keys().hasAll(['id', 'name', 'region', 'price', 'edit_quota', 'is_active', 'server_updated_at'])
+        && isValidId(data.id)
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 120
+        && data.region in ['malang', 'surabaya']
+        && data.price is number && data.price >= 0
+        && data.edit_quota is int && data.edit_quota >= 0 && data.edit_quota <= 1000
+        && data.is_active is bool
+        && data.server_updated_at == request.time;
+    }
+
+    function isValidAddOnItem(data) {
+      return data.keys().hasAll(['id', 'name', 'price', 'server_updated_at'])
+        && isValidId(data.id)
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 120
+        && data.price is number && data.price >= 0
+        && (!('edit_quota_addition' in data) || (data.edit_quota_addition is int && data.edit_quota_addition >= 0))
+        && data.server_updated_at == request.time;
+    }
+
+    function isValidStudioSettings(data) {
+      return data.keys().hasAll(['selectedYear', 'photographers', 'messageTemplates', 'driveConfig', 'server_updated_at'])
+        && data.selectedYear is int && data.selectedYear >= 2020 && data.selectedYear <= 2100
+        && data.photographers is list && data.photographers.size() <= 100 && (data.photographers.size() == 0 || data.photographers[0] is string)
+        && data.messageTemplates is map
+        && data.driveConfig is map
+        && data.server_updated_at == request.time;
+    }
+
+    function isValidActivityLog(data) {
+      return data.keys().hasAll(['id', 'timestamp', 'actor', 'action', 'details', 'server_created_at'])
+        && isValidId(data.id)
+        && data.timestamp is string && data.timestamp.size() <= 64
+        && data.actor is string && data.actor.size() <= 120
+        && data.action is string && data.action.size() <= 160
+        && data.details is string && data.details.size() <= 1000
+        && data.server_created_at is timestamp;
+    }
+
+    function isValidNotification(data) {
+      return data.keys().hasAll(['id', 'type', 'title', 'message', 'timestamp', 'read', 'server_created_at'])
+        && isValidId(data.id)
+        && data.type is string && data.type.size() <= 64
+        && data.title is string && data.title.size() <= 180
+        && data.message is string && data.message.size() <= 600
+        && data.timestamp is string && data.timestamp.size() <= 64
+        && data.read is bool
+        && data.server_created_at is timestamp;
+    }
+
+    function isValidPortalCard(data) {
+      return data.keys().hasAll(['client_id', 'order_id', 'client_id_display', 'client_name', 'status', 'server_updated_at'])
+        && isValidId(data.client_id)
+        && data.order_id is string && data.order_id.size() >= 1 && data.order_id.size() <= 64
+        && data.client_id_display is string && data.client_id_display.size() >= 1 && data.client_id_display.size() <= 16
+        && data.client_name is string && data.client_name.size() >= 1 && data.client_name.size() <= 140
+        && data.status is string && data.status.size() <= 40
+        && !('phone' in data)
+        && !('portal_pin_display' in data)
+        && !('portal_pin_hash' in data)
+        && data.server_updated_at == request.time;
+    }
+
+    function isValidPortalSubmission(data) {
+      return data.keys().hasAll(['id', 'card_hash', 'client_id', 'action', 'created_at', 'server_created_at'])
+        && data.keys().hasOnly(['id', 'card_hash', 'client_id', 'action', 'selected_ids', 'rating', 'comment', 'created_at', 'server_created_at'])
+        && isValidId(data.id)
+        && isValidSha256HexId(data.card_hash)
+        && isValidId(data.client_id)
+        && data.action in ['start_selection', 'submit_selection', 'complete_final', 'submit_feedback', 'skip_feedback']
+        && (!('selected_ids' in data) || (data.selected_ids is list && data.selected_ids.size() <= 200 && (data.selected_ids.size() == 0 || data.selected_ids[0] is string)))
+        && (!('rating' in data) || (data.rating is int && data.rating >= 1 && data.rating <= 5))
+        && (!('comment' in data) || (data.comment is string && data.comment.size() <= 600))
+        && data.created_at is string && data.created_at.size() <= 64
+        && data.server_created_at == request.time;
+    }
+
+    function isValidFgBoard(data) {
+      return data.keys().hasAll(['selectedYear', 'photographers', 'server_updated_at'])
+        && data.selectedYear is int && data.selectedYear >= 2020 && data.selectedYear <= 2100
+        && data.photographers is list && data.photographers.size() <= 100 && (data.photographers.size() == 0 || data.photographers[0] is string)
+        && data.server_updated_at == request.time;
+    }
+
+    function isValidFgSessionCard(data) {
+      return data.keys().hasAll(['id', 'order_id', 'client_name', 'booking_year', 'region_id', 'campus', 'status', 'server_updated_at'])
+        && isValidId(data.id)
+        && data.order_id is string && data.order_id.size() >= 1 && data.order_id.size() <= 64
+        && data.client_name is string && data.client_name.size() >= 1 && data.client_name.size() <= 140
+        && data.booking_year is int && data.booking_year >= 2020 && data.booking_year <= 2100
+        && data.region_id in ['malang', 'surabaya']
+        && data.campus is string && data.campus.size() <= 140
+        && data.status is string && data.status.size() <= 40
+        && !('package_price' in data)
+        && !('total_price' in data)
+        && !('paid_amount' in data)
+        && !('payment_status' in data)
+        && !('phone' in data)
+        && !('portal_pin_display' in data)
+        && data.server_updated_at == request.time;
+    }
+
+    function isValidFgFieldUpdate(data) {
+      return data.keys().hasAll(['id', 'board_hash', 'client_id', 'action', 'fg_name', 'created_at', 'server_created_at'])
+        && data.keys().hasOnly(['id', 'board_hash', 'client_id', 'action', 'fg_name', 'created_at', 'server_created_at'])
+        && isValidId(data.id)
+        && isValidSha256HexId(data.board_hash)
+        && isValidId(data.client_id)
+        && data.action in ['mark_photo_session', 'mark_jpg_uploaded']
+        && data.fg_name is string && data.fg_name.size() >= 1 && data.fg_name.size() <= 120
+        && data.created_at is string && data.created_at.size() <= 64
+        && data.server_created_at == request.time;
+    }
+
+    // 4. Collection Rules
+    match /test/{docId} {
+      allow get: if docId == 'connection';
+      allow list, write: if false;
+    }
+
+    match /admins/{uid} {
+      allow get: if isSignedIn() && request.auth.uid == uid;
+      allow list: if isAdmin();
+      allow create, update: if isAdmin() && isValidId(uid) && isValidAdminUser(incoming());
+      allow delete: if false;
+    }
+
+    match /clients/{clientId} {
+      allow list: if isAdmin();
+      allow get: if isAdmin() && isValidId(clientId);
+      allow create, update: if isAdmin() && isValidId(clientId) && isValidClientBooking(incoming());
+      allow delete: if isAdmin() && isValidId(clientId);
+    }
+
+    match /booking_requests/{requestId} {
+      allow list: if isAdmin();
+      allow get: if isAdmin() && isValidId(requestId);
+      allow create: if isValidId(requestId) && (
+        (isAdmin() && isValidAdminBookingRequest(incoming()))
+        || isValidPublicBookingRequestCreate(incoming())
+      );
+      allow update: if isAdmin() && isValidId(requestId) && isValidAdminBookingRequest(incoming());
+      allow delete: if isAdmin() && isValidId(requestId);
+    }
+
+    match /transactions/{transactionId} {
+      allow list: if isAdmin();
+      allow get: if isAdmin() && isValidId(transactionId);
+      allow create, update: if isAdmin() && isValidId(transactionId) && isValidTransaction(incoming());
+      allow delete: if isAdmin() && isValidId(transactionId);
+    }
+
+    match /packages/{packageId} {
+      allow list: if isAdmin() || (existing().is_active == true && existing().price is number);
+      allow get: if isValidId(packageId) && (isAdmin() || (existing().is_active == true && existing().price is number));
+      allow create, update: if isAdmin() && isValidId(packageId) && isValidPackagePlan(incoming());
+      allow delete: if isAdmin() && isValidId(packageId);
+    }
+
+    match /addons/{addonId} {
+      allow list: if isAdmin() || (existing().price is number && existing().price >= 0);
+      allow get: if isValidId(addonId) && (isAdmin() || (existing().price is number && existing().price >= 0));
+      allow create, update: if isAdmin() && isValidId(addonId) && isValidAddOnItem(incoming());
+      allow delete: if isAdmin() && isValidId(addonId);
+    }
+
+    match /settings/{settingId} {
+      allow list: if isAdmin();
+      allow get: if isAdmin() && isValidId(settingId);
+      allow create, update: if isAdmin() && isValidId(settingId) && isValidStudioSettings(incoming());
+      allow delete: if isAdmin() && isValidId(settingId);
+    }
+
+    match /activity_logs/{logId} {
+      allow list: if isAdmin();
+      allow get: if isAdmin() && isValidId(logId);
+      allow create, update: if isAdmin() && isValidId(logId) && isValidActivityLog(incoming());
+      allow delete: if isAdmin() && isValidId(logId);
+    }
+
+    match /notifications/{notifId} {
+      allow list: if isAdmin();
+      allow get: if isAdmin() && isValidId(notifId);
+      allow create, update: if isAdmin() && isValidId(notifId) && isValidNotification(incoming());
+      allow delete: if isAdmin() && isValidId(notifId);
+    }
+
+    match /portal_cards/{cardHash} {
+      allow list: if isAdmin();
+      allow get: if isAdmin() || isValidSha256HexId(cardHash);
+      allow create, update: if isAdmin() && isValidSha256HexId(cardHash) && isValidPortalCard(incoming());
+      allow delete: if isAdmin() && isValidSha256HexId(cardHash);
+    }
+
+    match /portal_submissions/{submissionId} {
+      allow list: if isAdmin();
+      allow get: if isAdmin() && isValidId(submissionId);
+      allow create: if isValidId(submissionId)
+        && isValidPortalSubmission(incoming())
+        && exists(/databases/$(database)/documents/portal_cards/$(incoming().card_hash))
+        && get(/databases/$(database)/documents/portal_cards/$(incoming().card_hash)).data.client_id == incoming().client_id;
+      allow update: if isAdmin() && isValidId(submissionId);
+      allow delete: if isAdmin() && isValidId(submissionId);
+    }
+
+    match /fg_boards/{boardHash} {
+      allow list: if isAdmin();
+      allow get: if isAdmin() || isValidSha256HexId(boardHash);
+      allow create, update: if isAdmin() && isValidSha256HexId(boardHash) && isValidFgBoard(incoming());
+      allow delete: if isAdmin() && isValidSha256HexId(boardHash);
+
+      match /sessions/{sessionId} {
+        allow list: if isAdmin() || isValidSha256HexId(boardHash);
+        allow get: if (isAdmin() || isValidSha256HexId(boardHash)) && isValidId(sessionId);
+        allow create, update: if isAdmin() && isValidSha256HexId(boardHash) && isValidId(sessionId) && isValidFgSessionCard(incoming());
+        allow delete: if isAdmin() && isValidSha256HexId(boardHash) && isValidId(sessionId);
+      }
+    }
+
+    match /fg_updates/{updateId} {
+      allow list: if isAdmin();
+      allow get: if isAdmin() && isValidId(updateId);
+      allow create: if isValidId(updateId)
+        && isValidFgFieldUpdate(incoming())
+        && exists(/databases/$(database)/documents/fg_boards/$(incoming().board_hash)/sessions/$(incoming().client_id));
+      allow update: if isAdmin() && isValidId(updateId);
+      allow delete: if isAdmin() && isValidId(updateId);
+    }
+  }
+}

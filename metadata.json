@@ -1,0 +1,6 @@
+{
+  "name": "Bestari Graduation",
+  "description": "Platform operasional bisnis fotografi wisuda Bestari Graduation dan client portal sinematik Malang & Surabaya.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

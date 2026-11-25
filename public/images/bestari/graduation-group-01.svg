@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="100%" height="100%">
+  <defs>
+    <radialGradient id="groupGlow" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#C5A572" stop-opacity="0.25"/>
+      <stop offset="60%" stop-color="#111318" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#0B0C0F" stop-opacity="1"/>
+    </radialGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="#0B0C0F"/>
+  <rect width="100%" height="100%" fill="url(#groupGlow)"/>
+
+  <!-- Multiple Graduates in Friendship Group -->
+  <g transform="translate(300, 380)">
+    <path d="M-50 -130 L-10 -150 L30 -130 L-10 -110 Z" fill="#C5A572"/>
+    <ellipse cx="-10" cy="-60" rx="32" ry="40" fill="#171A20"/>
+    <path d="M-70 10 Q-10 0 50 10 L60 260 L-80 260 Z" fill="#171A20" stroke="#292D35"/>
+  </g>
+
+  <g transform="translate(480, 360)">
+    <path d="M-50 -130 L-10 -150 L30 -130 L-10 -110 Z" fill="#D8C49D"/>
+    <ellipse cx="-10" cy="-60" rx="34" ry="42" fill="#1D2027"/>
+    <path d="M-75 10 Q-10 0 55 10 L65 280 L-85 280 Z" fill="#1D2027" stroke="#C5A572" stroke-width="1"/>
+  </g>
+
+  <g transform="translate(660, 370)">
+    <path d="M-50 -130 L-10 -150 L30 -130 L-10 -110 Z" fill="#C5A572"/>
+    <ellipse cx="-10" cy="-60" rx="32" ry="40" fill="#171A20"/>
+    <path d="M-70 10 Q-10 0 50 10 L60 270 L-80 270 Z" fill="#171A20" stroke="#292D35"/>
+  </g>
+
+  <g transform="translate(840, 390)">
+    <path d="M-50 -130 L-10 -150 L30 -130 L-10 -110 Z" fill="#8F7242"/>
+    <ellipse cx="-10" cy="-60" rx="30" ry="38" fill="#15171C"/>
+    <path d="M-65 10 Q-10 0 45 10 L55 250 L-75 250 Z" fill="#15171C" stroke="#292D35"/>
+  </g>
+
+  <!-- Confetti Elements -->
+  <circle cx="420" cy="220" r="4" fill="#C5A572"/>
+  <circle cx="560" cy="180" r="5" fill="#D8C49D"/>
+  <circle cx="720" cy="200" r="3" fill="#F2F1ED"/>
+  <rect x="500" y="240" width="8" height="8" fill="#C5A572" transform="rotate(45 500 240)"/>
+  <rect x="630" y="210" width="6" height="6" fill="#D8C49D" transform="rotate(25 630 210)"/>
+
+  <rect x="20" y="20" width="1160" height="760" fill="none" stroke="#292D35" stroke-width="1"/>
+  <text x="600" y="720" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="14" letter-spacing="4" fill="#C5A572">BESTARI GROUP CELEBRATION · TOGETHER WE CONQUER</text>
+</svg>
