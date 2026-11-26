@@ -1,3 +1,4 @@
+import { EmberSparks } from '../common/EmberSparks';
 import React, { useState, useMemo } from 'react';
 import {
   Users,
@@ -387,6 +388,31 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
           alt="Bestari Graduation Visual"
           className="absolute right-0 top-0 bottom-0 w-full lg:w-3/5 h-full object-cover object-right opacity-35 select-none pointer-events-none mix-blend-luminosity"
         />
+
+        {/* Banner foto + percikan api (sama dengan hero form reservasi) */}
+        <div className="relative z-20 -mx-6 -mt-6 lg:-mx-8 lg:-mt-8 mb-6 h-48 sm:h-64 overflow-hidden rounded-t-2xl">
+          <div
+            aria-hidden="true"
+            className="banner-kenburns absolute inset-0 bg-cover"
+            style={{ backgroundImage: "url('/images/bestari/dashboard-banner.jpg')", backgroundPosition: '50% 55%' }}
+          />
+          <div className="hero-lightsweep absolute inset-0" aria-hidden="true" />
+          <EmberSparks count={22} rise="-280px" />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0"
+            style={{
+              background:
+                'linear-gradient(to bottom, rgba(7,8,11,0.35) 0%, rgba(7,8,11,0) 40%, rgba(26,31,43,0.85) 88%, #1A1F2B 100%)'
+            }}
+          />
+          <div className="absolute left-6 lg:left-8 bottom-4 flex items-center gap-3">
+            <span className="h-px w-8 bg-[#C5A572]" />
+            <span className="text-[10px] sm:text-[11px] font-bold tracking-[0.35em] uppercase text-[#D8C49D]">
+              Bestari Graduation
+            </span>
+          </div>
+        </div>
 
         <div className="relative z-20 flex flex-col gap-5">
           <div className="space-y-2.5 max-w-3xl">

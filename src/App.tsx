@@ -432,6 +432,7 @@ export default function App() {
               onBulkVerifyFullPayment={store.bulkVerifyFullPayment}
               onBulkUpdateWorkflowStatus={store.bulkUpdateWorkflowStatus}
               onBulkAssignPhotographer={store.bulkAssignPhotographer}
+              onBulkDeleteClients={store.bulkDeleteClients}
               onSendInvoiceToDrive={store.sendInvoiceToClientDrive}
               onOpenNewTransactionModal={() => setIsTransactionModalOpen(true)}
               onOpenClientPortalPreview={clientId => handleOpenClientPortal(clientId)}

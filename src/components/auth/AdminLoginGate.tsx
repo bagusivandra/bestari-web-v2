@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Camera,
   Lock,
@@ -8,9 +8,13 @@ import {
   ArrowRight,
   AlertCircle,
   Sparkles,
-  Cloud
+  Cloud,
+  CalendarDays,
+  GraduationCap,
+  X
 } from 'lucide-react';
 import { PWAInstallButton } from '../common/PWAInstallButton';
+import { EmberSparks } from '../common/EmberSparks';
 import { signInAdminWithGoogle } from '../../services/firestoreSync';
 
 interface AdminLoginGateProps {
@@ -32,6 +36,23 @@ export const AdminLoginGate: React.FC<AdminLoginGateProps> = ({
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+  // Form login admin disembunyikan di balik tombol kecil; halaman depan fokus ke klien.
+  const [showAdmin, setShowAdmin] = useState(false);
+
+  // Matikan bokeh global di halaman depan supaya tampilannya bersih (efek foto + percikan sudah cukup).
+  useEffect(() => {
+    document.body.classList.add('booking-calm');
+    return () => document.body.classList.remove('booking-calm');
+  }, []);
+
+  useEffect(() => {
+    if (!showAdmin) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowAdmin(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showAdmin]);
 
   const handleGoogleAdminLogin = async () => {
     setError('');
@@ -93,25 +114,141 @@ export const AdminLoginGate: React.FC<AdminLoginGateProps> = ({
   };
 
   return (
-    <div className="min-h-screen bestari-canvas-bg text-[#F2F1ED] flex flex-col items-center justify-center p-4 sm:p-6 font-['DM_Sans'] antialiased">
-      <div className="w-full max-w-md space-y-6">
-        {/* Brand Header */}
-        <div className="flex flex-col items-center text-center space-y-3">
-          <div className="w-12 h-12 rounded-xl bg-[#12151D] border border-[#C5A572]/40 flex items-center justify-center text-[#C5A572] shadow-lg">
-            <Camera className="w-6 h-6" />
-          </div>
-          <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-wide text-[#F2F1ED] font-the-season">
-              Bestari Graduation
-            </h1>
-            <p className="text-xs text-[#9CA1AD]">
-              Admin Command Center &amp; Main Database
-            </p>
-          </div>
-        </div>
+    <div className="relative min-h-screen overflow-hidden bg-[#07080B] text-[#F2F1ED] font-['DM_Sans'] antialiased">
+      {/* Latar foto sinematik + percikan api */}
+      <div aria-hidden="true" className="absolute inset-0">
+        <div
+          className="banner-kenburns absolute inset-0 bg-cover"
+          style={{ backgroundImage: "url('/images/bestari/hero-photo.jpg')", backgroundPosition: '70% 30%' }}
+        />
+        <div className="hero-lightsweep absolute inset-0" />
+        <EmberSparks count={30} />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(to top, #07080B 3%, rgba(7,8,11,0.4) 32%, rgba(7,8,11,0.1) 100%), linear-gradient(to right, rgba(7,8,11,0.9) 0%, rgba(7,8,11,0.5) 42%, rgba(7,8,11,0) 78%)'
+          }}
+        />
+      </div>
 
-        {/* Login Card */}
-        <div className="p-6 sm:p-7 bg-[#12151D] border border-[#252A36] rounded-2xl shadow-2xl space-y-5">
+      <div className="relative z-10 min-h-screen max-w-5xl mx-auto px-5 sm:px-8 flex flex-col">
+        {/* Brand */}
+        <header className="pt-7 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[#12151D]/80 border border-[#C5A572]/40 flex items-center justify-center text-[#C5A572]">
+            <Camera className="w-5 h-5" />
+          </div>
+          <span className="text-lg font-semibold tracking-wide font-the-season">Bestari Graduation</span>
+        </header>
+
+        <main className="flex-1 flex flex-col justify-center py-12 sm:py-16">
+          <div className="hero-rise flex items-center gap-4" style={{ animationDelay: '0.1s' }}>
+            <span className="h-px w-10 bg-[#C5A572]" />
+            <span className="text-[11px] sm:text-xs font-bold tracking-[0.4em] uppercase text-[#D8C49D]">
+              Graduation Photography
+            </span>
+          </div>
+          <h1
+            className="hero-rise mt-5 font-['Plus_Jakarta_Sans'] font-extrabold uppercase leading-[0.95] tracking-[-0.035em] text-white text-[clamp(2.4rem,7vw,5.6rem)]"
+            style={{ animationDelay: '0.25s' }}
+          >
+            Where Dreams
+          </h1>
+          <p
+            className="hero-rise font-['Playfair_Display'] italic font-medium leading-[1.05] text-[clamp(2.6rem,7.6vw,6rem)] bg-gradient-to-r from-[#F3E2BC] via-[#C5A572] to-[#E8A76B] bg-clip-text text-transparent pb-2"
+            style={{ animationDelay: '0.4s' }}
+          >
+            Meet Reality
+          </p>
+
+          {/* Dua pintu utama untuk klien */}
+          <div className="hero-rise mt-10 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 max-w-3xl" style={{ animationDelay: '0.6s' }}>
+            <button
+              type="button"
+              onClick={onOpenPublicBooking}
+              className="group text-left p-6 rounded-2xl bg-[#C5A572] hover:bg-[#D8C49D] text-[#0B0C0F] shadow-[0_18px_50px_-18px_rgba(197,165,114,0.8)] transition-all hover:-translate-y-0.5"
+            >
+              <span className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-70">Mau booking sesi?</span>
+              <span className="mt-3 flex items-center gap-3">
+                <CalendarDays className="w-7 h-7" />
+                <span className="text-2xl font-extrabold tracking-tight">Form Reservasi</span>
+              </span>
+              <span className="mt-2 block text-sm opacity-80">
+                Pilih paket, jadwal, dan lokasi. DP Rp 100.000 mengunci jadwalmu.
+              </span>
+              <span className="mt-4 inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest">
+                Mulai Reservasi
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={onOpenClientPortal}
+              className="portal-glow group relative text-left p-6 rounded-2xl bg-[#12151D]/90 backdrop-blur-md transition-all hover:-translate-y-0.5"
+            >
+              <span className="absolute -top-3 right-5 px-3 py-1 rounded-full bg-gradient-to-r from-[#F3E2BC] to-[#E8A76B] text-[#0B0C0F] text-[10px] font-extrabold uppercase tracking-widest shadow-lg">
+                Khusus Klien
+              </span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#D8C49D]">Sudah jadi klien?</span>
+              <span className="mt-3 flex items-center gap-3">
+                <GraduationCap className="w-7 h-7 text-[#C5A572]" />
+                <span className="text-2xl font-extrabold tracking-tight text-[#F2F1ED]">Portal Klien</span>
+              </span>
+              <span className="mt-2 block text-sm text-[#F2F1ED]/75">
+                Lihat progres, pilih foto, dan unduh hasil wisudamu dengan ID pesanan.
+              </span>
+              <span className="mt-4 inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-[#C5A572]">
+                <Sparkles className="w-4 h-4" />
+                Buka Portal Klien
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </span>
+            </button>
+          </div>
+        </main>
+
+        {/* Footer: akses internal dibuat kecil & tidak mencolok */}
+        <footer className="pb-7 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[#9CA1AD]">
+          <p>Bestari Graduation · #WhereDreamsMeetReality</p>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <PWAInstallButton compact />
+            <button
+              type="button"
+              onClick={onOpenFgPortal}
+              className="flex items-center gap-1.5 hover:text-[#F2F1ED] transition-colors"
+            >
+              <Camera className="w-3.5 h-3.5" />
+              <span>Portal Fotografer</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowAdmin(true)}
+              className="flex items-center gap-1.5 hover:text-[#F2F1ED] transition-colors"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span>Masuk Admin</span>
+            </button>
+          </div>
+        </footer>
+      </div>
+
+      {/* Login admin (muncul hanya setelah klik "Masuk Admin") */}
+      {showAdmin && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+          onClick={e => {
+            if (e.target === e.currentTarget) setShowAdmin(false);
+          }}
+        >
+          <div className="relative w-full max-w-md max-h-[92vh] overflow-y-auto p-6 sm:p-7 bg-[#12151D] border border-[#252A36] rounded-2xl shadow-2xl space-y-5">
+            <button
+              type="button"
+              onClick={() => setShowAdmin(false)}
+              aria-label="Tutup"
+              className="absolute right-3 top-3 p-1.5 rounded-lg text-[#9CA1AD] hover:text-[#F2F1ED] hover:bg-[#181C26]"
+            >
+              <X className="w-4 h-4" />
+            </button>
           <div className="space-y-1 border-b border-[#252A36] pb-4">
             <div className="flex items-center gap-2 text-sm font-bold text-[#F2F1ED]">
               <Lock className="w-4 h-4 text-[#C5A572]" />
@@ -218,43 +355,9 @@ export const AdminLoginGate: React.FC<AdminLoginGateProps> = ({
             </button>
           </form>
 
-          <div className="pt-3 border-t border-[#252A36] flex flex-wrap items-center justify-between gap-2 text-xs">
-            <span className="text-[#9CA1AD]">Akses khusus:</span>
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={onOpenPublicBooking}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#0B0D12] hover:bg-[#181C26] text-[#F2F1ED] border border-[#252A36] font-semibold whitespace-nowrap shrink-0"
-              >
-                <span>Form Reservasi</span>
-              </button>
-              <button
-                type="button"
-                onClick={onOpenFgPortal}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#0B0D12] hover:bg-[#181C26] text-[#9CA1AD] hover:text-[#F2F1ED] border border-[#252A36] font-semibold whitespace-nowrap shrink-0"
-              >
-                <Camera className="w-3.5 h-3.5 text-[#C5A572]" />
-                <span>Portal FG</span>
-              </button>
-              <button
-                type="button"
-                onClick={onOpenClientPortal}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#181C26] hover:bg-[#1E2330] text-[#D8C49D] border border-[#252A36] font-semibold whitespace-nowrap shrink-0"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-[#C5A572]" />
-                <span>Portal Klien</span>
-              </button>
-            </div>
           </div>
         </div>
-
-        <div className="flex flex-col items-center gap-2">
-          <PWAInstallButton compact />
-          <p className="text-center text-[11px] text-[#707685]">
-            Bestari Graduation · #WhereDreamsMeetReality
-          </p>
-        </div>
-      </div>
+      )}
     </div>
   );
 };

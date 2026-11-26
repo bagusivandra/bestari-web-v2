@@ -1137,6 +1137,35 @@ export function useBestariStore(isAdminAuthenticated: boolean = false) {
     });
   };
 
+  // 3d. Bulk Delete Clients from Main Database (satu kali proses + satu catatan log)
+  const bulkDeleteClients = (clientIds: string[]): number => {
+    const idSet = new Set(clientIds);
+    const targets = clients.filter(c => idSet.has(c.id));
+    if (targets.length === 0) return 0;
+    const orderIdSet = new Set(targets.map(c => c.order_id));
+
+    setClients(prev => prev.filter(c => !idSet.has(c.id)));
+    setNotifications(prev =>
+      prev.filter(
+        n => !(n.client_id && idSet.has(n.client_id)) && !(n.order_id && orderIdSet.has(n.order_id))
+      )
+    );
+
+    const names = targets
+      .slice(0, 10)
+      .map(c => `${c.client_name} (${c.order_id})`)
+      .join(', ');
+    addLog({
+      action: 'Hapus Klien Massal',
+      event_type: 'data_update',
+      details: `Menghapus ${targets.length} klien dari Main Database: ${names}${
+        targets.length > 10 ? `, dan ${targets.length - 10} klien lainnya` : ''
+      }`
+    });
+
+    return targets.length;
+  };
+
   // Google Drive Connect / Disconnect actions
   const connectGoogleDrive = async (): Promise<boolean> => {
     setIsConnectingDrive(true);
@@ -1920,6 +1949,7 @@ export function useBestariStore(isAdminAuthenticated: boolean = false) {
     bulkVerifyFullPayment,
     bulkUpdateWorkflowStatus,
     bulkAssignPhotographer,
+    bulkDeleteClients,
     addTransaction,
     addBookingRequest,
     addPhotographer,

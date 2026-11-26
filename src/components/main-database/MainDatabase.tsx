@@ -68,6 +68,7 @@ interface MainDatabaseProps {
     targetStatus: 'photo_session' | 'file_uploaded' | 'selection_pending' | 'final_access' | 'completed'
   ) => number;
   onBulkAssignPhotographer: (clientIds: string[], photographerName: string) => number;
+  onBulkDeleteClients: (clientIds: string[]) => number;
   onSendInvoiceToDrive: (clientId: string) => Promise<DriveUploadResult>;
   onOpenNewTransactionModal: () => void;
   onOpenClientPortalPreview: (clientId: string) => void;
@@ -78,7 +79,8 @@ interface MainDatabaseProps {
 type BulkActionKind =
   | { type: 'verify_pelunasan' }
   | { type: 'status'; target: 'photo_session' | 'file_uploaded' | 'selection_pending' | 'final_access' | 'completed'; label: string }
-  | { type: 'assign_fg'; photographer: string };
+  | { type: 'assign_fg'; photographer: string }
+  | { type: 'delete' };
 
 export const MainDatabase: React.FC<MainDatabaseProps> = ({
   clients,
@@ -102,6 +104,7 @@ export const MainDatabase: React.FC<MainDatabaseProps> = ({
   onBulkVerifyFullPayment,
   onBulkUpdateWorkflowStatus,
   onBulkAssignPhotographer,
+  onBulkDeleteClients,
   onSendInvoiceToDrive,
   onOpenNewTransactionModal,
   onOpenClientPortalPreview,
@@ -415,6 +418,14 @@ export const MainDatabase: React.FC<MainDatabaseProps> = ({
           `Berhasil menugaskan fotografer ${pendingBulkAction.photographer} untuk ${count} klien terpilih.`
         );
         setBulkFgName('');
+      } else if (pendingBulkAction.type === 'delete') {
+        const deletedIds = new Set(validSelectedIds);
+        const count = onBulkDeleteClients(validSelectedIds);
+        setBulkBannerMessage(`Berhasil menghapus ${count} klien terpilih dari Main Database.`);
+        if (activeClientId && deletedIds.has(activeClientId)) {
+          setActiveClientId(null);
+          if (onClearSelectedClient) onClearSelectedClient();
+        }
       }
       setSelectedClientIds([]);
     } finally {
@@ -662,6 +673,14 @@ export const MainDatabase: React.FC<MainDatabaseProps> = ({
               >
                 <X className="w-3.5 h-3.5" />
                 <span>Batal Pilih</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPendingBulkAction({ type: 'delete' })}
+                className="px-3 py-1.5 text-xs font-bold text-rose-200 bg-rose-950/70 hover:bg-rose-800/70 border border-rose-700/70 rounded-lg flex items-center gap-1.5 transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Hapus {validSelectedIds.length} Terpilih</span>
               </button>
             </div>
           </div>
@@ -1005,17 +1024,35 @@ export const MainDatabase: React.FC<MainDatabaseProps> = ({
       {/* Bulk Action Confirmation Modal */}
       {pendingBulkAction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-[#111318] border border-[#C5A572]/50 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95 duration-150">
+          <div
+            className={`bg-[#111318] border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95 duration-150 ${
+              pendingBulkAction.type === 'delete' ? 'border-rose-800/60' : 'border-[#C5A572]/50'
+            }`}
+          >
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#C5A572]/15 border border-[#C5A572]/40 flex items-center justify-center text-[#C5A572] shrink-0">
-                <CheckCircle2 className="w-5 h-5" />
-              </div>
+              {pendingBulkAction.type === 'delete' ? (
+                <div className="w-10 h-10 rounded-xl bg-rose-950/70 border border-rose-700/60 flex items-center justify-center text-rose-400 shrink-0">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+              ) : (
+                <div className="w-10 h-10 rounded-xl bg-[#C5A572]/15 border border-[#C5A572]/40 flex items-center justify-center text-[#C5A572] shrink-0">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+              )}
               <div className="space-y-1">
                 <h3 className="text-sm font-bold text-[#F2F1ED]">
-                  Konfirmasi Aksi Massal ({validSelectedIds.length} Klien)
+                  {pendingBulkAction.type === 'delete'
+                    ? `Hapus ${validSelectedIds.length} Klien dari Main Database?`
+                    : `Konfirmasi Aksi Massal (${validSelectedIds.length} Klien)`}
                 </h3>
                 <p className="text-xs text-[#9296A0] leading-relaxed">
-                  {pendingBulkAction.type === 'verify_pelunasan' ? (
+                  {pendingBulkAction.type === 'delete' ? (
+                    <>
+                      Data <strong className="text-[#F2F1ED]">{validSelectedIds.length} klien terpilih</strong> di bawah ini
+                      akan <strong className="text-rose-300">dihapus permanen</strong> dari daftar klien dan tidak bisa
+                      dikembalikan. Periksa kembali daftarnya sebelum melanjutkan.
+                    </>
+                  ) : pendingBulkAction.type === 'verify_pelunasan' ? (
                     <>
                       Anda akan memverifikasi pelunasan (<strong className="text-[#F2F1ED]">LUNAS</strong>), menerbitkan{' '}
                       <strong className="text-[#D8C49D]">Invoice PDF</strong>,{' '}
@@ -1062,14 +1099,26 @@ export const MainDatabase: React.FC<MainDatabaseProps> = ({
                 type="button"
                 disabled={isProcessingBulk}
                 onClick={handleExecuteBulkAction}
-                className="px-4 py-2 text-xs font-bold text-[#0B0C0F] bg-[#C5A572] hover:bg-[#D8C49D] rounded-xl transition-colors flex items-center gap-1.5"
+                className={`px-4 py-2 text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 ${
+                  pendingBulkAction.type === 'delete'
+                    ? 'text-white bg-rose-600 hover:bg-rose-500'
+                    : 'text-[#0B0C0F] bg-[#C5A572] hover:bg-[#D8C49D]'
+                }`}
               >
                 {isProcessingBulk ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : pendingBulkAction.type === 'delete' ? (
+                  <Trash2 className="w-3.5 h-3.5" />
                 ) : (
                   <CheckCircle2 className="w-3.5 h-3.5" />
                 )}
-                <span>{isProcessingBulk ? 'Memproses...' : 'Ya, Jalankan Sekarang'}</span>
+                <span>
+                  {isProcessingBulk
+                    ? 'Memproses...'
+                    : pendingBulkAction.type === 'delete'
+                    ? `Ya, Hapus ${validSelectedIds.length} Klien`
+                    : 'Ya, Jalankan Sekarang'}
+                </span>
               </button>
             </div>
           </div>

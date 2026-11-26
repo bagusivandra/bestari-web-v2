@@ -3,7 +3,6 @@ import React, { useEffect, useRef } from 'react';
 /**
  * Lapisan efek visual global (tidak mengubah data/logika):
  * - bokeh lensa kamera yang melayang pelan dan bergeser mengikuti kursor
- * - cahaya emas + cincin yang mengikuti kursor (hanya perangkat dengan mouse)
  * - sorotan lembut di dalam kartu tempat kursor berada
  * Semua mati otomatis jika perangkat meminta "reduce motion".
  */
@@ -24,8 +23,6 @@ const HUES = ['197,165,114', '197,165,114', '216,196,157', '99,132,214', '168,99
 
 export const AmbientFx: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const glowRef = useRef<HTMLDivElement>(null);
-  const ringRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -38,7 +35,7 @@ export const AmbientFx: React.FC = () => {
     let h = 0;
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     const mouse = { x: 0.5, y: 0.5, tx: 0.5, ty: 0.5 };
-    const pos = { x: -200, y: -200, tx: -200, ty: -200, rx: -200, ry: -200 };
+    const pos = { x: -200, y: -200, tx: -200, ty: -200 };
     let orbs: Orb[] = [];
     let raf = 0;
     let hidden = false;
@@ -91,17 +88,8 @@ export const AmbientFx: React.FC = () => {
         ctx.arc(px, py, o.r, 0, Math.PI * 2);
         ctx.fill();
       }
-      // cahaya & cincin kursor (lerp supaya mengikuti dengan lembut)
       pos.x += (pos.tx - pos.x) * 0.16;
       pos.y += (pos.ty - pos.y) * 0.16;
-      pos.rx += (pos.tx - pos.rx) * 0.09;
-      pos.ry += (pos.ty - pos.ry) * 0.09;
-      if (glowRef.current) {
-        glowRef.current.style.transform = `translate3d(${pos.x - 260}px, ${pos.y - 260}px, 0)`;
-      }
-      if (ringRef.current) {
-        ringRef.current.style.transform = `translate3d(${pos.rx}px, ${pos.ry}px, 0) translate(-50%, -50%)`;
-      }
     };
 
     const loop = (time: number) => {
@@ -122,8 +110,6 @@ export const AmbientFx: React.FC = () => {
         card.style.setProperty('--mx', `${e.clientX - b.left}px`);
         card.style.setProperty('--my', `${e.clientY - b.top}px`);
       }
-      const interactive = !!el?.closest?.('button, a, input, select, textarea, [role="button"], tr');
-      ringRef.current?.classList.toggle('fx-ring-hot', interactive);
     };
 
     const onVis = () => {
@@ -148,8 +134,6 @@ export const AmbientFx: React.FC = () => {
   return (
     <div aria-hidden="true" className="fx-layer">
       <canvas ref={canvasRef} className="fx-canvas" />
-      <div ref={glowRef} className="fx-glow" />
-      <div ref={ringRef} className="fx-ring" />
     </div>
   );
 };

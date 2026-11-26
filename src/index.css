@@ -129,44 +129,6 @@
   mix-blend-mode: screen;
   opacity: 0.8;
 }
-.fx-glow {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 520px;
-  height: 520px;
-  border-radius: 9999px;
-  background: radial-gradient(circle, rgba(197, 165, 114, 0.13), rgba(197, 165, 114, 0.04) 40%, transparent 68%);
-  mix-blend-mode: screen;
-  transform: translate3d(-600px, -600px, 0);
-  will-change: transform;
-}
-.fx-ring {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 26px;
-  height: 26px;
-  border-radius: 9999px;
-  border: 1px solid rgba(216, 196, 157, 0.55);
-  transform: translate3d(-100px, -100px, 0);
-  transition: width 220ms cubic-bezier(0.16, 1, 0.3, 1), height 220ms cubic-bezier(0.16, 1, 0.3, 1),
-    background-color 220ms ease, border-color 220ms ease;
-  will-change: transform;
-}
-.fx-ring.fx-ring-hot {
-  width: 46px;
-  height: 46px;
-  background-color: rgba(197, 165, 114, 0.12);
-  border-color: rgba(216, 196, 157, 0.9);
-}
-@media (pointer: coarse), (prefers-reduced-motion: reduce) {
-  .fx-glow,
-  .fx-ring {
-    display: none;
-  }
-}
-
 /* Latar: aurora berwarna yang bergeser pelan, bukan hitam polos */
 .bestari-canvas-bg { isolation: isolate; }
 .bestari-canvas-bg::before {
@@ -267,3 +229,115 @@ a[class*='bg-[#C5A572]']:hover {
   }
   .rv-hidden { opacity: 1; transform: none; }
 }
+
+/* Transisi antar langkah form reservasi */
+@keyframes wizardIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+.wizard-step { animation: wizardIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@media (prefers-reduced-motion: reduce) { .wizard-step { animation: none; } }
+
+/* ================= Form reservasi: latar tenang + hero sinematik ================= */
+.booking-calm .fx-layer { display: none; }
+.booking-bg { background: #07080B; position: relative; isolation: isolate; }
+.booking-bg::before {
+  content: '';
+  position: fixed;
+  inset: -20%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(38% 34% at 18% 30%, rgba(197, 140, 90, 0.10), transparent 70%),
+    radial-gradient(34% 34% at 82% 72%, rgba(150, 70, 55, 0.11), transparent 70%);
+  animation: bookingDrift 30s ease-in-out infinite alternate;
+}
+@keyframes bookingDrift { to { transform: translate3d(5%, -4%, 0) scale(1.1); } }
+
+.hero-kenburns {
+  transform-origin: 40% 45%;
+  animation: heroZoom 34s ease-in-out infinite alternate;
+  will-change: transform;
+}
+/* Laptop/desktop: zoom in 10% pelan, lalu kembali, berulang terus */
+@keyframes heroZoom {
+  from { transform: scale(1); }
+  to { transform: scale(1.1); }
+}
+/* HP (foto landscape): fokus di cetakan utama, geser pelan ke satu cetakan di kanan, lalu kembali */
+@media (max-width: 767px) {
+  .hero-kenburns {
+    transform: none;
+    animation: heroPan 48s ease-in-out infinite;
+  }
+}
+@keyframes heroPan {
+  0%, 12% { background-position: 29% 20%; }
+  44%, 60% { background-position: 68% 20%; }
+  92%, 100% { background-position: 29% 20%; }
+}
+.hero-lightsweep {
+  background: linear-gradient(105deg, transparent 30%, rgba(255, 190, 120, 0.16) 48%, transparent 66%);
+  background-size: 220% 100%;
+  mix-blend-mode: screen;
+  animation: heroSweep 11s ease-in-out infinite alternate;
+}
+@keyframes heroSweep { from { background-position: 100% 0; } to { background-position: 0% 0; } }
+.hero-dust {
+  position: absolute;
+  bottom: -10px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, #ffe9bd 0%, #ffab5c 55%, rgba(255, 130, 50, 0.2) 100%);
+  box-shadow: 0 0 22px 7px rgba(255, 140, 60, 0.55);
+  opacity: 0;
+  animation-name: heroDust;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
+@keyframes heroDust {
+  0% { transform: translate3d(0, 0, 0); opacity: 0; }
+  12% { opacity: 0.9; }
+  80% { opacity: 0.5; }
+  100% { transform: translate3d(var(--dx, 46px), var(--rise, -95vh), 0); opacity: 0; }
+}
+.hero-rise { opacity: 0; animation: heroRise 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+@keyframes heroRise { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+/* Banner foto dashboard & halaman depan: zoom sangat pelan */
+.banner-kenburns { animation: bannerZoom 32s ease-in-out infinite alternate; will-change: transform; }
+@keyframes bannerZoom { from { transform: scale(1); } to { transform: scale(1.1); } }
+@media (prefers-reduced-motion: reduce) {
+  .banner-kenburns { animation: none !important; }
+  .hero-kenburns, .hero-lightsweep, .hero-dust, .booking-bg::before { animation: none !important; }
+  .hero-dust { display: none; }
+  .hero-rise { opacity: 1; animation: none; }
+}
+
+@media (min-width: 768px) {
+  .hero-photo-wrap {
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 36%);
+    mask-image: linear-gradient(to right, transparent 0%, #000 36%);
+  }
+}
+
+/* Kartu Portal Klien: border emas bergerak + cahaya berdenyut supaya mudah ditemukan */
+.portal-glow { box-shadow: 0 0 0 1px rgba(197, 165, 114, 0.25), 0 18px 50px -20px rgba(232, 167, 107, 0.55); animation: portalPulse 3.6s ease-in-out infinite; }
+.portal-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(120deg, #C5A572, #F3E2BC, #E8A76B, #C5A572);
+  background-size: 300% 300%;
+  animation: portalBorder 6s linear infinite;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+@keyframes portalBorder { to { background-position: 300% 0; } }
+@keyframes portalPulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(197, 165, 114, 0.25), 0 18px 50px -20px rgba(232, 167, 107, 0.45); }
+  50% { box-shadow: 0 0 0 1px rgba(197, 165, 114, 0.45), 0 18px 60px -12px rgba(232, 167, 107, 0.8); }
+}
+@media (prefers-reduced-motion: reduce) { .portal-glow, .portal-glow::before { animation: none; } }
