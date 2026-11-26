@@ -37,7 +37,9 @@ interface PersistedBestariState {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DATA_DIR = path.join(__dirname, 'data');
+const DATA_DIR = process.env.VERCEL
+  ? path.join('/tmp', 'bestari-data')
+  : path.join(__dirname, 'data');
 const DB_FILE_PATH = path.join(DATA_DIR, 'bestari-db.json');
 const PENDING_PUBLIC_REQUESTS_PATH = path.join(DATA_DIR, 'pending-public-requests.json');
 
@@ -332,9 +334,9 @@ function createGeminiClient(): GoogleGenAI | null {
   });
 }
 
-async function startServer() {
-  const app = express();
-  const PORT = Number(process.env.PORT) || 3000;
+const app = express();
+const PORT = Number(process.env.PORT) || 3000;
+
 
   app.set('trust proxy', 1);
   app.disable('x-powered-by');
@@ -1223,28 +1225,30 @@ ${recentReviews.map(r => `- ${r.clientName || 'Klien'} (${r.campus || '-'}, FG: 
     }
   });
 
-  // Vite dev middleware vs Production static assets
-  if (process.env.NODE_ENV !== 'production') {
-    const { createServer: createViteServer } = await import('vite');
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa'
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distDir = path.join(__dirname, 'dist');
-    app.use(express.static(distDir));
-    app.get('*', (_req, res) => {
-      res.sendFile(path.join(distDir, 'index.html'));
-    });
-  }
+  export default app;
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Bestari Graduation Phase 2 server listening on http://0.0.0.0:${PORT}`);
+if (!process.env.VERCEL) {
+  (async () => {
+    if (process.env.NODE_ENV !== 'production') {
+      const { createServer: createViteServer } = await import('vite');
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: 'spa'
+      });
+      app.use(vite.middlewares);
+    } else {
+      const distDir = path.join(__dirname, 'dist');
+      app.use(express.static(distDir));
+      app.get('*', (_req, res) => {
+        res.sendFile(path.join(distDir, 'index.html'));
+      });
+    }
+
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Bestari Graduation Phase 2 server listening on http://0.0.0.0:${PORT}`);
+    });
+  })().catch(err => {
+    console.error('Failed to start Bestari Graduation server:', err);
+    process.exit(1);
   });
 }
-
-startServer().catch(err => {
-  console.error('Failed to start Bestari Graduation server:', err);
-  process.exit(1);
-});
